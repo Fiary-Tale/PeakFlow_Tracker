@@ -1,13 +1,13 @@
 package commond
 
 import (
-	"Network_Traffic/utils"
+	"PeakFlow_Tracker/utils"
 	"flag"
 	"fmt"
 )
 
 func version() {
-	version := "V1.0.3"
+	version := "V1.0.4"
 	fmt.Println(version)
 }
 

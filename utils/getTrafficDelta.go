@@ -64,10 +64,12 @@ func wdtFlow(config *Config) { // 流量监控狗，每小时计算一下流量�
 			WriteError(fmt.Sprintf("%s Error getting network traffic: %v\n", time.Now().Format("2006-01-02 15:04:05"), err))
 			return
 		}
-		// 获取当前日期作为日志文件名
-		logFileName := fmt.Sprintf("/var/log/Traffic/%s.log", now.Format("2006-01-02"))
-		result := fmt.Sprintf("%s Upload Delta: %.2f, Download Delta: %.2f\n", time.Now().Format("2006-01-02 15:04:05"), upload, download)
-		Write(result, logFileName)
+		// 通过数据库的方式来写入到sqlite的数据库中
+		err = InsertSampleData(time.Now().Format("2006-01-02 15:04:05"), upload, download)
+		if err != nil {
+			log.Printf("Error inserting sample data: %v", err)
+			WriteError(fmt.Sprintf("%s Error inserting sample data: %v\n", time.Now().Format("2006-01-02 15:04:05"), err))
+		}
 		// 睡眠1秒，避免重复触发
 		time.Sleep(1 * time.Second)
 	}

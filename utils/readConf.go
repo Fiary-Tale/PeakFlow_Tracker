@@ -45,9 +45,6 @@ func Exec(name string) {
 			log.Printf("获取网卡流量失败: %v", err)
 			WriteError(fmt.Sprintf("%s 获取网卡流量失败: %v\n", time.Now().Format("2006-01-02 15:04:05"), err))
 		}
-		SendNetworkTrafficMessage(conf)
-		fmt.Println("First execution of SendNetworkTrafficMessage")
-		WriteError(fmt.Sprintf("%s First execution of SendNetworkTrafficMessage\n", time.Now().Format("2006-01-02 15:04:05")))
 		isFirstRun = false
 	}
 

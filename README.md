@@ -33,7 +33,11 @@
     + 修改日志记录文件名称(access日志设置为当前日期.log,error日志设置为error.log)
     + 修改日志记录目录(修改为/var/log/Traffic/目录)
     + 新增当前版本查看详情(输入 -V 即可输出当前版本)
-
++ 2024-6-6 PeakFlow_TrackerV1.0.4
+    + 重构流量增量统计存储代码(现存入到/etc/Traffic/peakflow.db中)
+    + 重构流量增量统计计算代码(现从/etc/Traffic/peakflow.db获取存储数据计算)
+    + 删除流量增量统计日志存储及计算方法
+    + 增加存储数据库自动生成(无需手动创建)
 ## 特性
 
 1. 程序简单,傻瓜式操作,可快速上手使用
@@ -41,7 +45,7 @@
 3. 速度快,体积小,跨平台使用,支持使用systemctl开机自启动或/etc/init.d/开机自启动
 
 ## 使用教程
-1. 下载对应架构的程序,或使用源码自行编译(前提配置好编译环境)
+1. 下载对应架构的程序,或使用源码自行编译(前提配置好编译环境,将二进制程序及配置文件放入到/etc/Traffic/目录下)
 2. 编写配置文件,在config.yaml中添加自己的token及网卡名称,time时间可不更改,默认为24小时
 3. 添加运行权限,`chmod 777 PeakFlow_Tracker`
 4. 运行程序放入后台`./PeakFlow_Tracker &`(或是放入到/etc/init.d/目录下,使用命令/etc/init.d/PeakFlow_Tracker start)
