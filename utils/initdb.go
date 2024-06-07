@@ -20,6 +20,7 @@ func init() {
 	if err != nil {
 		fmt.Println("failed to connect database")
 		WriteError("failed to connect database" + err.Error() + "\n")
+		return
 	}
 	// 自动迁移表结构
 	if err := db.AutoMigrate(&PeakFlow{}); err != nil {

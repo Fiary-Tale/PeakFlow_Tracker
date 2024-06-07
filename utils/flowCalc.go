@@ -6,18 +6,15 @@ import (
 	"time"
 )
 
-// 计算晚高峰和平峰流量新版(通过读取文件)
-
-// 获取前一天的日志文件名
-func getYesterdayLogFileName() string {
-	yesterday := time.Now().AddDate(0, 0, -1).Format("2006-01-02")
-	return fmt.Sprintf("/var/log/Traffic/%s.log", yesterday)
-}
-
 // 从日志中读取流量数据并返回平峰和高峰流量
 func getPeakOrOff() (peakUploadDelta, peakDownloadDelta, offpeakUploadDelta, offpeakDownloadDelta float64, err error) {
 	var flows []PeakFlow
-	result := db.Find(&flows)
+	// 获取当前时间的前一天时间戳
+	yesterday := time.Now().AddDate(0, 0, -1)
+	startOfDay := time.Date(yesterday.Year(), yesterday.Month(), yesterday.Day(), 0, 0, 0, 0, yesterday.Location())
+	endOfDay := startOfDay.Add(24 * time.Hour)
+	// 查询前一天的流量数据
+	result := db.Where("time >= ? AND time < ?", startOfDay, endOfDay).Find(&flows)
 	if result.Error != nil {
 		return 0, 0, 0, 0, fmt.Errorf("failed to query database: %v", result.Error)
 	}

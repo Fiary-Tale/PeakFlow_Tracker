@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"time"
 )
 
@@ -19,11 +20,14 @@ func init() {
 	lastTrafficData = make(map[string]TrafficData) // 初始化流量数据存储
 }
 
-// 发送网络流量消息
-
-func SendNetworkTrafficMessage(config *Config) {
+func SendNetworkMesssage(config *Config) {
 	// 获取当天峰值及平峰流量情况
 	peakUploadDelta, peakDownloadDelta, offpeakUploadDelta, offpeakDownloadDelta, err := getPeakOrOff()
+	if err != nil {
+		log.Printf("Error getting peak upload delta: %v", err)
+		WriteError("Error getting peak upload delta")
+		return
+	}
 	// 获取当天上行及下行流量总量
 	upload, download, err := getPeakAndOff()
 	// 获取当前时间
@@ -40,45 +44,63 @@ func SendNetworkTrafficMessage(config *Config) {
 		offpeakDownloadDelta, // 转换为GB
 		triggerTime,
 	)
-
-	// 发送消息
-	err = sendDingTalkMessage(config.Token, message)
-	if err != nil {
-		log.Printf("Error sending DingTalk message: %v", err) // 如果发送消息出错，记录日志
-		WriteError(fmt.Sprintf("%s Error sending DingTalk message: %v\n", time.Now().Format("2006-01-02 15:04:05"), err))
-		return
-	}
-	fmt.Println("Network traffic message sent successfully.") // 成功发送消息后打印提示
-}
-
-// 发送钉钉消息
-func sendDingTalkMessage(token, content string) error {
-	message := DingTalkMessage{
+	data := DingTalkMessage{
 		MsgType: "markdown",
 		Markdown: struct {
 			Title string `json:"title"`
 			Text  string `json:"text"`
 		}{
 			Title: "NAS设备流量监控",
-			Text:  content,
+			Text:  message,
 		},
 	}
+	switch config.Method {
+	case "dingtalk":
+		sendDingTalkMessage(config.Token, data)
+	case "serverchan":
+		sendServerChatMessage(config.Token, data)
+	default:
+		log.Fatalf("未知的推送方法: %s", config.Method)
+	}
+}
 
+// 发送钉钉消息
+func sendDingTalkMessage(token string, message DingTalkMessage) {
 	data, err := json.Marshal(message) // 将消息结构体转换为JSON
 	if err != nil {
-		return err
+		log.Printf("Error sending DingTalk message: %v", err)
+		WriteError(fmt.Sprintf("Error sending DingTalk message: %v", err))
+		return
 	}
-
 	webhookURL := fmt.Sprintf("https://oapi.dingtalk.com/robot/send?access_token=%s", token) // 构建Webhook URL
 	resp, err := http.Post(webhookURL, "application/json", bytes.NewBuffer(data))            // 发送HTTP POST请求
 	if err != nil {
-		return err
+		log.Printf("Error sending DingTalk message: %v", err)
+		WriteError(fmt.Sprintf("Error sending DingTalk message: %v", err))
+		return
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		log.Printf("Error sending DingTalk message: %v", resp.Status)              // 打印错误状态码
+		WriteError(fmt.Sprintf("Error sending DingTalk message: %v", resp.Status)) // 写入错误日志
+	}
+}
+
+func sendServerChatMessage(token string, message DingTalkMessage) {
+	data := url.Values{}
+	data.Add("title", message.Markdown.Title)
+	data.Add("text", message.Markdown.Text)
+	webhookURL := fmt.Sprintf("https://sctapi.ftqq.com/%s.send", token) // 构建Webhook URL
+	resp, err := http.PostForm(webhookURL, data)                        // 发送HTTP POST请求
+	if err != nil {
+		log.Printf("Error sending ServerChat message: %v", err)
+		WriteError(fmt.Sprintf("Error sending ServerChat message: %v", resp.Status))
+		return
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("unexpected status code: %d", resp.StatusCode) // 检查HTTP响应状态码
+		log.Printf("Error sending ServerChat message: %v", resp.Status)
+		WriteError(fmt.Sprintf("Error sending ServerChat message: %v", resp.Status))
 	}
-
-	return nil
 }
