@@ -12,7 +12,8 @@ import (
 type Config struct {
 	Token     string `yaml:"token"`     // DingTalk 机器人access_token
 	Interface string `yaml:"interface"` // 网络接口名称
-	Time      string `yaml:"time"`      // 以分钟为单位
+	Time      string `yaml:"time"`      // 固定时间,示例：09:35:00
+	Method    string `yaml:"method"`
 }
 
 func ReadConfig(filename string) (*Config, error) {
@@ -64,7 +65,13 @@ func Exec(name string) {
 			now := time.Now()
 			// 检查设定时间
 			if now.Hour() == triggerTime.Hour() && now.Minute() == triggerTime.Minute() && now.Second() == triggerTime.Second() {
-				SendNetworkTrafficMessage(conf)
+				if now.Day() == 1 { // 判断是否为1号，如果为1号，则进入另一条分支处理，获取正月的上下行流量总和
+					SendMonthNetworkMessage(conf)
+					time.Sleep(1 * time.Second)
+					SendNetworkMesssage(conf)
+				} else {
+					SendNetworkMesssage(conf)
+				}
 				time.Sleep(1 * time.Second) // 睡眠1秒，避免重复发送
 			}
 		default:

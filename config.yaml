@@ -1,3 +1,4 @@
-token: "84abca9694a2605aacb6a5e6edd89a76f8e899f6ec664c5e748f828623f2b96e"
+token: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 interface: "ens33"
 time: "09:35:00"
+method: "dingtalk" # 可以是 "dingtalk" 或 "serverchan"

@@ -8,7 +8,8 @@ import (
 
 var fileMutex sync.Mutex
 
-func Write(result, name string) {
+func Write(result string) {
+	name := "/var/log/Traffic/Flow.log"
 	fileMutex.Lock()
 	defer fileMutex.Unlock()
 	// 获取目录路径
