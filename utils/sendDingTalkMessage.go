@@ -21,6 +21,7 @@ func init() {
 }
 
 func SendMonthNetworkMessage(config *Config) {
+	// 获取上月流量
 	monthUpload, monthDownload, err := getLastFlow()
 	if err != nil {
 		log.Printf("Error getting peak upload delta: %v", err)
